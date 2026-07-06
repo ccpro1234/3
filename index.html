@@ -484,24 +484,82 @@ text-shadow:
 <script>
 const EXPIRE_DATE = new Date("2026-07-19");
 
-function login(){
- const u = document.getElementById("user").value;
- const p = document.getElementById("pass").value;
- if(new Date() > EXPIRE_DATE){
-   document.getElementById("loginMsg").innerText="❌ หมดอายุแล้ว";
-   return;
- }
- if(u==="1234" && p==="1234"){
-   history = [];
-   patterns = [];
-   document.getElementById("loginScreen").style.display="none";
-   document.getElementById("app").style.display="block";
-   document.getElementById("aiWidget").style.display="flex";
-   init();
-   updateUI();
- }else{
-   document.getElementById("loginMsg").innerText="❌ รหัสไม่ถูกต้อง";
- }
+/* ===== LOGIN (API VERSION) ===== */
+async function login(){
+
+  const userInput = document.getElementById("user");
+  const passInput = document.getElementById("pass");
+
+  const loginMsg = document.getElementById("loginMsg");
+
+  loginMsg.innerText = "กำลังตรวจสอบ...";
+
+  try{
+
+    const res = await fetch(
+      "https://morning-block-55bb.havanalanna.workers.dev/?user="
+      + encodeURIComponent(userInput.value)
+      + "&pass=" + encodeURIComponent(passInput.value)
+    );
+
+    const data = await res.json();
+
+    if(data.status==="ok"){
+
+      history = [];
+      patterns = [];
+
+      document.getElementById("loginScreen").style.display="none";
+      document.getElementById("app").style.display="block";
+      document.getElementById("aiWidget").style.display="flex";
+
+      if(data.expire){
+        document.getElementById("expireText").innerText =
+          "EXPIRE : " + data.expire;
+      }
+
+      init();
+      updateUI();
+
+      /* ตรวจ License ทุก 30 วินาที */
+      const user = userInput.value;
+      const pass = passInput.value;
+
+      setInterval(async()=>{
+
+        try{
+
+          const r = await fetch(
+            "https://morning-block-55bb.havanalanna.workers.dev/?user="
+            + encodeURIComponent(user)
+            + "&pass=" + encodeURIComponent(pass)
+          );
+
+          const j = await r.json();
+
+          if(j.status!=="ok"){
+            alert("⛔ License ถูกปิดใช้งาน");
+            location.reload();
+          }
+
+        }catch(e){
+          console.log("License Check Error");
+        }
+
+      },30000);
+
+    }else{
+
+      loginMsg.innerText="❌ User หรือ Password ไม่ถูกต้อง";
+
+    }
+
+  }catch(e){
+
+    loginMsg.innerText="❌ ไม่สามารถเชื่อมต่อ License Server";
+
+  }
+
 }
 
 document.getElementById("expireText").innerText = "EXPIRE: " + EXPIRE_DATE.toLocaleDateString("th-TH");
