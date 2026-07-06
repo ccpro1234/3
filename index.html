@@ -542,7 +542,13 @@ function init(){
   el.className="pattern-row";
   el.innerHTML=`
     <div>${code}</div>
-    <div id="dots-${id}" style="display:grid; grid-template-columns:repeat(20,14px); gap:2px; max-height:32px;"></div>
+    <div id="dots-${id}"
+style="
+display:grid;
+gap:2px;
+align-content:start;
+">
+</div>
     <div id="pct-${id}">0%</div>
     <div class="pred-circle" id="pred-${id}">-</div>
   `;
